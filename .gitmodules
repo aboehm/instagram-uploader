@@ -1,0 +1,3 @@
+[submodule "instagram"]
+	path = instagram
+	url = github-aboehm:aboehm/python-instagram-upload
