@@ -30,7 +30,7 @@ optional arguments:
 
 ## Upload media
 
-Upload MEDIAFILE to account *ACCOUNT* with password *PASSWORD* with description "#tag1 #tag2 some words":
+Upload *MEDIAFILE* to account *ACCOUNT* with password *SECRET* with description "#tag1 #tag2 some words":
 
 ```
 instagram-uploader.py
