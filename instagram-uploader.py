@@ -133,14 +133,19 @@ if __name__ == "__main__":
 		else:
 			save_settings(args.username, args.password)
 			sys.exit(0)
+	else:
+		if args.media == None:
+			print('Media file required!')
+			parser.print_help()
+			sys.exit(0)
 
-	try:
-		f = open(args.media, "r")
-		d = f.read(10)
-		f.close()
-	except:
-		print('Can\'t access media %s' % (args.media))
-		sys.exit(1)
+		try:
+			f = open(args.media, "r")
+			d = f.read(10)
+			f.close()
+		except:
+			print('Can\'t access media %s' % (args.media))
+			sys.exit(1)
 
 	if (args.username == None or args.password == None) and (get_username() == None or get_password() == None):
 		print('Username and/or password is not set, but required to run.')
