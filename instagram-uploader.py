@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 # vim: sts=4 ts=4 noet :
 
@@ -25,7 +25,7 @@
 # SOFTWARE.
 
 from instagram import InstagramSession
-import sys, os, json, argparse
+import sys, os, json, argparse, traceback
 
 def get_user_dir():
 	return os.path.join(os.environ['HOME'], '.instagram-uploader')
@@ -123,6 +123,7 @@ if __name__ == "__main__":
 		action='count',
 		help='Say what\'s going on',
 		dest='verbose',
+		default=0,
 	)
 	args = parser.parse_args()
 
@@ -140,11 +141,12 @@ if __name__ == "__main__":
 			sys.exit(0)
 
 		try:
-			f = open(args.media, "r")
+			f = open(args.media, "rb")
 			d = f.read(10)
 			f.close()
-		except:
-			print('Can\'t access media %s' % (args.media))
+		except Exception as e:
+			print('Can\'t access media %s: %s' % (args.media, e))
+			traceback.print_exc(file=sys.stderr)
 			sys.exit(1)
 
 	if (args.username == None or args.password == None) and (get_username() == None or get_password() == None):
@@ -158,15 +160,20 @@ if __name__ == "__main__":
 		print("Press [Enter] to continue.")
 		sys.stdin.read(1)
 
-	instagram = InstagramSession()
+	instagram = InstagramSession(verbose=(args.verbose > 0))
 	if (args.verbose >= 1):
 		print('Log into instagram with username %s' % (args.username))
 
 	try:
-		if instagram.login(args.username, args.password):
+		rl = instagram.login(args.username, args.password)
+		if rl["status"] == "ok":
 			if (args.verbose >= 1):
 				print('Uploading media %s' % (args.media))
-			media_id = instagram.upload_photo(args.media)
+			ru = instagram.upload_photo(args.media)
+			if ru["status"] != "ok":
+				print("Photo upload failed: %s" % (ru["message"]))
+			else:
+				media_id = ru["media_id"]
 
 			if (args.verbose >= 1):
 				print('Media ID is %s' % (media_id))
@@ -174,10 +181,17 @@ if __name__ == "__main__":
 			if media_id is not None:
 				if (args.verbose >= 1):
 					print('Configuring media and setting comment')
-				instagram.configure_photo(media_id, args.comment)
+
+				rc = instagram.configure_photo(media_id, args.comment)
+				if rc["status"] != "ok":
+					print("Photo configuration failed: %s" % (rc["message"]))
+
+		else:
+			print("Login failed: %s" % (rl["message"]))
 
 	except Exception as e:
 		print('Something wen\'t wrong while uploading: %s' % (e))
+		traceback.print_exc(file=sys.stderr)
 		sys.exit(1)
 
 	sys.exit(0)
